@@ -81,7 +81,7 @@ create table pairing_members (
 );
 
 -- בדיוק 2 חברים לצימוד
-create function enforce_two_members() returns trigger language plpgsql as $$
+create function enforce_two_members() returns trigger language plpgsql set search_path = public as $$
 begin
   if (select count(*) from pairing_members where pairing_id = new.pairing_id) >= 2 then
     raise exception 'pairing already has two members';
