@@ -8,3 +8,4 @@ dist/
 .DS_Store
 packages/db/supabase/.temp/
 packages/db/supabase/.branches/
+packages/db/supabase/.build/

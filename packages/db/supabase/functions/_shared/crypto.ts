@@ -1,14 +1,23 @@
-// הצפנת שדות רגישים בשרת בלבד. המפתח מגיע מסוד של Edge Functions (DATA_KEY, base64 של 32 בתים).
+// הצפנת שדות רגישים בשרת בלבד. המפתח נגזר מהסוד DATA_KEY (משפט סודי של 32 תווים לפחות).
+// אסור לשנות את הסוד אחרי שנשמרו נתונים – הם לא ייקראו יותר.
 // עמודות bytea עוברות ב-PostgREST כמחרוזת hex בפורמט '\x…', ולכן seal מחזיר מחרוזת כזו.
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
-async function key(): Promise<CryptoKey> {
-  const raw = Deno.env.get('DATA_KEY');
-  if (!raw) throw new Error('DATA_KEY missing');
-  const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
-  if (bytes.length !== 32) throw new Error('DATA_KEY must be 32 bytes');
-  return crypto.subtle.importKey('raw', bytes, 'AES-GCM', false, ['encrypt', 'decrypt']);
+let cached: Promise<CryptoKey> | null = null;
+
+function key(): Promise<CryptoKey> {
+  if (cached) return cached;
+  const secret = Deno.env.get('DATA_KEY');
+  if (!secret || secret.length < 32) throw new Error('DATA_KEY missing or shorter than 32 chars');
+  cached = (async () => {
+    const base = await crypto.subtle.importKey('raw', enc.encode(secret), 'HKDF', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'HKDF', hash: 'SHA-256', salt: enc.encode('pulse-duo/v1'), info: enc.encode('field-encryption') },
+      base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'],
+    );
+  })();
+  return cached;
 }
 
 const toHex = (b: Uint8Array) => '\\x' + Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');

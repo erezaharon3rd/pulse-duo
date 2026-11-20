@@ -5,9 +5,9 @@ const same = (s: string): T => ({ m: s, f: s, plural: s });
 
 export const S = {
   promise: same('אפשר לעצור בכל רגע. מה שלך נשאר שלך.'),
-  phoneTitle: same('מה המספר שלך?'),
-  codeTitle: same('הקוד שקיבלת ב-SMS'),
-  ageCheck: same('אני מעל גיל 18'),
+  emailTitle: same('מה המייל שלך? נשלח אליו קוד כניסה'),
+  codeTitle: same('הקוד שקיבלת במייל'),
+  ageCheck: same('באיזו שנה נולדת? (מגיל 18 בלבד)'),
   nickTitle: same('בחר/י כינוי. אף אחד לא יראה את השם האמיתי שלך.'),
   addPairing: same('+ צימוד'),
   sparkHint: same('לחיצה ארוכה = ניצוץ ✨'),

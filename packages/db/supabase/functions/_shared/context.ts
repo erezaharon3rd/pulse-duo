@@ -29,8 +29,18 @@ export async function assertMember(ctx: Ctx, pairingId: string): Promise<string>
   return ids.find((id) => id !== ctx.userId)!;
 }
 
+const ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') ?? 'https://poetic-blini-7c13a2.netlify.app').split(',');
+
+// אפליקציית מובייל לא שולחת Origin; בדפדפן מותר רק האתר שלנו
+export const CORS: Record<string, string> = {
+  'Access-Control-Allow-Origin': ORIGINS[0],
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Vary': 'Origin',
+};
+
 export function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...CORS } });
 }
 
 export function handle(fn: (req: Request) => Promise<Response>) {

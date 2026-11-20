@@ -26,15 +26,22 @@ function db(): SupabaseClient {
 }
 
 async function call<T>(fn: string, body: unknown): Promise<T> {
-  const { data, error } = await db().functions.invoke(fn, { body });
+  const { data, error } = await db().functions.invoke(`api/${fn}`, { body });
   if (error) throw error;
   return data as T;
 }
 
 // ---------- כניסה ----------
 export const auth = {
-  sendCode: (phone: string) => db().auth.signInWithOtp({ phone }),
-  verifyCode: (phone: string, token: string) => db().auth.verifyOtp({ phone, token, type: 'sms' }),
+  /** קוד חד-פעמי למייל. shouldCreateUser: הרשמה וכניסה באותו מסך. */
+  async sendCode(email: string) {
+    const { error } = await db().auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    if (error) throw error;
+  },
+  async verifyCode(email: string, token: string) {
+    const { error } = await db().auth.verifyOtp({ email, token, type: 'email' });
+    if (error) throw error;
+  },
   signOut: () => db().auth.signOut(),
   currentUserId: async () => (await db().auth.getUser()).data.user?.id ?? null,
 };
