@@ -1,0 +1,8 @@
+# סריקת סודות: כל כללי ברירת המחדל, חוץ ממפתח ה-publishable של Supabase,
+# שהוא ציבורי מעצם הגדרתו (נשלח לכל דפדפן; ההגנה היא RLS). מפתח שירות עדיין ייתפס.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Supabase publishable key (public by design)"
+regexes = ['''sb_publishable_[A-Za-z0-9_-]+''']
