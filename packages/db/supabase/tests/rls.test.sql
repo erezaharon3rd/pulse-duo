@@ -20,6 +20,8 @@ insert into sessions (session_id, pairing_id, scheduled_at, origin) values
   ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', now(), 'schedule');
 insert into debriefs (session_id, user_id, effort, pain, feeling) values
   ('20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-00000000000b', 3, 0, 'did_not_want');
+insert into willingness (session_id, user_id, answer) values
+  ('20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-00000000000b', 'not_today');
 insert into my_pairing_settings (user_id, pairing_id, spice_level) values
   ('00000000-0000-0000-0000-00000000000b', '10000000-0000-0000-0000-000000000001', 1);
 
@@ -35,8 +37,8 @@ select is((select count(*) from pairing_members where pairing_id = '10000000-000
 select throws_ok($$ select plan_enc from sessions $$, '42501', null, 'A לא יכול לקרוא את התוכנית לפני החשיפה');
 select is((select count(*) from sessions_public)::int, 1, 'A רואה את המפגש שלו בלי התוכנית');
 select throws_ok($$ insert into pairings (couple_name) values ('xx') $$, '42501', null, 'לקוח לא יכול ליצור צימוד ישירות');
-select is((with u as (update willingness set answer = 'yes' returning 1) select count(*) from u)::int, 0,
-  'לקוח לא יכול לשנות תשובת רצון ישירות');
+select is_empty($$ update willingness set answer = 'yes' returning 1 $$,
+  'לקוח לא יכול לשנות תשובת רצון ישירות (גם לא של הצד השני)');
 
 select * from finish();
 rollback;
