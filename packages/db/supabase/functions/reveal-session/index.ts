@@ -1,6 +1,6 @@
 // רגע החשיפה: מחזיר את התוכנית רק לחבר בצימוד, ורק אחרי ששניהם אמרו כן.
 // הפלט מוכן לתצוגה (כותרת, תת-כותרת, שניות) כדי שהממשק לא יצטרך שום לוגיקה.
-import type { SessionPlan } from '@pulse/core';
+import type { SessionPlan } from '../_shared/core/index.ts';
 import { assertMember, context, handle, HttpError, json } from '../_shared/context.ts';
 import { open } from '../_shared/crypto.ts';
 import poses from '../_shared/poses.json' with { type: 'json' };

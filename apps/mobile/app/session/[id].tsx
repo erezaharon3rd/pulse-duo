@@ -27,7 +27,7 @@ export default function Session() {
     const r = await api.session.answer(id!, a, 'balanced');
     if (r.status === 'ready') {
       const { plan } = await api.session.reveal(id!);
-      setPlan(plan as unknown as UiPlan);
+      setPlan(plan);
       setStage('reveal');
     } else {
       setMsg(r.message ?? 'מחכים לצד השני…');

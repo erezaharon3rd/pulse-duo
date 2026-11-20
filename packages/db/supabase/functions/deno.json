@@ -1,5 +1,0 @@
-{
-  "imports": {
-    "@pulse/core": "../../../core/src/index.ts"
-  }
-}

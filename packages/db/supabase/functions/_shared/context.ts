@@ -44,3 +44,35 @@ export function handle(fn: (req: Request) => Promise<Response>) {
     }
   };
 }
+
+/** הצימודים הפעילים של המשתמש, בפורמט של כללי הלוגיקה. */
+export async function myPairings(ctx: Ctx, excludeId?: string) {
+  const { data } = await ctx.admin
+    .from('pairing_members')
+    .select('pairing_id, pairings!inner(agreement, pending_delete_at)')
+    .eq('user_id', ctx.userId);
+  return (data ?? [])
+    .filter((r: any) => r.pairing_id !== excludeId)
+    .map((r: any) => ({
+      pairingId: r.pairing_id as string,
+      agreement: (r.pairings.agreement ?? 'non_exclusive') as 'exclusive' | 'non_exclusive',
+      active: !r.pairings.pending_delete_at,
+    }));
+}
+
+export async function loadPairing(ctx: Ctx, pairingId: string) {
+  const { data } = await ctx.admin.from('pairings').select('*').eq('pairing_id', pairingId).maybeSingle();
+  if (!data) throw new HttpError(404, 'not found');
+  return data;
+}
+
+export const isFrozen = (p: { frozen_until: string | null; pending_delete_at: string | null }) =>
+  !!p.pending_delete_at || (!!p.frozen_until && new Date(p.frozen_until) > new Date());
+
+export async function body<T>(req: Request): Promise<T> {
+  try {
+    return (await req.json()) as T;
+  } catch {
+    throw new HttpError(400, 'bad json');
+  }
+}

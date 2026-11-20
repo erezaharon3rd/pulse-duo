@@ -1,5 +1,5 @@
 // "מתאים לי" / "לא היום". כשהשני כבר אמר כן – בונה את המפגש בשרת ושומר אותו מוצפן.
-import { buildSession, canStartSession, effectiveSpice, type Person, type Pose } from '@pulse/core';
+import { buildSession, canStartSession, effectiveSpice, type Person, type Pose } from '../_shared/core/index.ts';
 import { assertMember, context, handle, HttpError, json } from '../_shared/context.ts';
 import { open, seal } from '../_shared/crypto.ts';
 import poses from '../_shared/poses.json' with { type: 'json' };

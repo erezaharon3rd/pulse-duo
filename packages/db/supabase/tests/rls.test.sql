@@ -1,7 +1,7 @@
 -- בדיקות RLS בין שני חשבונות (pgTAP). רץ ב-CI: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(8);
+select plan(12);
 
 -- שני משתמשים בצימוד אחד, ומשתמש שלישי בצימוד אחר
 insert into auth.users (id) values
@@ -39,6 +39,11 @@ select is((select count(*) from sessions_public)::int, 1, 'A רואה את המ�
 select throws_ok($$ insert into pairings (couple_name) values ('xx') $$, '42501', null, 'לקוח לא יכול ליצור צימוד ישירות');
 select is_empty($$ update willingness set answer = 'yes' returning 1 $$,
   'לקוח לא יכול לשנות תשובת רצון ישירות (גם לא של הצד השני)');
+select throws_ok($$ select private.housekeeping() $$, '42501', null, 'לקוח לא יכול להריץ ניקוי');
+select throws_ok($$ select private.create_scheduled_sessions() $$, '42501', null, 'לקוח לא יכול ליצור מפגשים מהלו"ז');
+select is_empty($$ select 1 from pairing_invites $$, 'לקוח לא רואה הזמנות (גם לא גיבובים)');
+select is_empty($$ select 1 from sparks where receiver_id <> '00000000-0000-0000-0000-00000000000a' and sender_id <> '00000000-0000-0000-0000-00000000000a' $$,
+  'A לא רואה ניצוצות של צימודים אחרים');
 
 select * from finish();
 rollback;

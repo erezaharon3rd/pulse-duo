@@ -8,10 +8,11 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "npm run test:core && npm run check:boundaries",
+    "test": "npm run test:core && npm run check:boundaries && node scripts/sync-core.mjs --check",
     "test:core": "node --experimental-strip-types --no-warnings --test packages/core/test/*.test.ts",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "build:web": "npm --workspace apps/mobile run export:web"
+    "build:web": "npm --workspace apps/mobile run export:web",
+    "sync:core": "node scripts/sync-core.mjs"
   },
   "engines": {
     "node": ">=22.6"

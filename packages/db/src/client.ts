@@ -1,6 +1,5 @@
 // שכבת הגישה לנתונים. הממשק מדבר רק עם הפונקציות כאן – אף פעם לא עם Supabase ישירות.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { SessionPlan } from '@pulse/core';
 
 export interface DbConfig {
   url: string;
@@ -64,7 +63,7 @@ export const profile = {
   },
   get: async () => (await db().from('profiles').select('*').maybeSingle()).data,
   /** הסינון נשמר מוצפן דרך פונקציית שרת. */
-  saveScreening: (flags: string[]) => call<void>('save-screening', { flags }),
+  saveScreening: (flags: string[]) => call<{ ok: true; nextRecheckAt: string }>('save-screening', { flags }),
 };
 
 // ---------- צימודים ----------
@@ -80,30 +79,39 @@ export const pairings = {
     const { data } = await db().from('pairings').select('pairing_id, couple_name, level, frozen_until');
     return (data ?? []).map((r) => ({ pairingId: r.pairing_id, coupleName: r.couple_name, level: r.level, frozenUntil: r.frozen_until }));
   },
-  createInvite: () => call<{ link: string; pin: string }>('pairing-invite', {}),
+  createInvite: () => call<{ link: string; pin: string; pairingId: string }>('pairing-invite', {}),
   join: (code: string, pin: string) => call<{ pairingId: string }>('pairing-join', { code, pin }),
   voteAgreement: (pairingId: string, agreement: 'exclusive' | 'non_exclusive') =>
-    call<{ matched: boolean | null }>('pairing-agreement', { pairingId, agreement }),
-  freeze: (pairingId: string, days: 7 | 14 | 30) => call<void>('pairing-freeze', { pairingId, days }),
-  unpair: (pairingId: string, fromReport = false) => call<void>('pairing-unpair', { pairingId, fromReport }),
+    call<{ matched: boolean | null; message?: string }>('pairing-agreement', { pairingId, agreement }),
+  /** 0 = הפשרה */
+  freeze: (pairingId: string, days: 0 | 7 | 14 | 30) => call<{ frozenUntil: string | null }>('pairing-freeze', { pairingId, days }),
+  unpair: (pairingId: string, fromReport = false) => call<{ deleteAt?: string; deleted?: boolean }>('pairing-unpair', { pairingId, fromReport }),
+  /** ביטול פירוק בתוך 24 השעות (רק מי שפירק) */
+  cancelUnpair: (pairingId: string) => call<{ cancelled: boolean }>('pairing-unpair', { pairingId, cancel: true }),
 };
 
 // ---------- מפגש ----------
+export interface RevealedPlan {
+  steps: { title: string; subtitle: string; seconds: number }[];
+}
+
 export const session = {
   answer: (sessionId: string, answer: 'yes' | 'not_today', energy: 'recovery' | 'balanced' | 'high') =>
     call<{ status: string; message: string | null }>('answer-willingness', { sessionId, answer, energy }),
-  reveal: (sessionId: string) => call<{ plan: SessionPlan }>('reveal-session', { sessionId }),
+  /** התוכנית כבר מוכנה לתצוגה: כותרת, תת-כותרת ושניות לכל שלב. */
+  reveal: (sessionId: string) => call<{ plan: RevealedPlan }>('reveal-session', { sessionId }),
   debrief: (sessionId: string, d: { effort: number; pain: number; painPoseId?: string; feeling: string }) =>
-    call<void>('save-debrief', { sessionId, ...d }),
+    call<{ minutes: number; kcal: { low: number; high: number }; checkIn: boolean }>('save-debrief', { sessionId, ...d }),
 };
 
 // ---------- ניצוץ וערוץ ----------
 export const spark = {
-  send: (pairingId: string, when: 'now' | 'tonight' | 'kids_asleep') => call<{ sent: boolean; senderSees?: string }>('spark-send', { pairingId, when }),
-  reply: (sparkId: string, reply: string) => call<void>('spark-reply', { sparkId, reply }),
+  send: (pairingId: string, when: 'now' | 'tonight' | 'kids_asleep') => call<{ sent: boolean; senderSees?: string; sparkId?: string; expiresAt?: string }>('spark-send', { pairingId, when }),
+  reply: (sparkId: string, reply: 'yes_now' | 'yes_hour' | 'yes_tonight' | 'hug' | 'talk' | 'touch_only' | 'not_now') =>
+    call<{ ok: true; sessionId: string | null; senderWillSee: string }>('spark-reply', { sparkId, reply }),
 };
 
 export const channel = {
   send: (pairingId: string, kind: 'proposal' | 'reminder' | 'hype' | 'thinking_of_you' | 'talk', cardId: string) =>
-    call<void>('channel-send', { pairingId, kind, cardId }),
+    call<{ ok: true; sessionId: string | null }>('channel-send', { pairingId, kind, cardId }),
 };

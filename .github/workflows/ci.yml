@@ -14,6 +14,8 @@ jobs:
         run: npm run test:core
       - name: גבולות שכבות + סודות
         run: npm run check:boundaries
+      - name: הלוגיקה בשרת זהה ל-core
+        run: node scripts/sync-core.mjs --check
       - name: סריקת סודות
         uses: gitleaks/gitleaks-action@v2
         env:

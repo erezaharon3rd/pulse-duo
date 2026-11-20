@@ -8,3 +8,5 @@ export * from './calories.ts';
 export * from './load.ts';
 export * from './progress.ts';
 export * from './sessionBuilder.ts';
+export * from './channel.ts';
+export * from './debrief.ts';
