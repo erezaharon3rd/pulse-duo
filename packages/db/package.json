@@ -1,0 +1,13 @@
+{
+  "name": "@pulse/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "שכבת הנתונים: סכמה, RLS, Edge Functions, ולקוח גישה לנתונים לממשק.",
+  "main": "src/client.ts",
+  "types": "src/client.ts",
+  "dependencies": {
+    "@pulse/core": "*",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

@@ -1,0 +1,34 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  logic-and-boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: בדיקות לוגיקה (חלק 11 באפיון)
+        run: npm run test:core
+      - name: גבולות שכבות + סודות
+        run: npm run check:boundaries
+      - name: סריקת סודות
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - name: הרצת מיגרציות ובדיקות RLS בין חשבונות
+        working-directory: packages/db
+        run: |
+          supabase init --force || true
+          supabase start -x studio,imgproxy,inbucket,realtime,storage-api,edge-runtime,logflare,vector
+          supabase db reset
+          supabase test db

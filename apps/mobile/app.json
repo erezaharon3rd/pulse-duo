@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Pulse",
+    "slug": "pulse-duo",
+    "scheme": "pulse",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0B12",
+    "extra": { "supportsRTL": true, "forcesRTL": true },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "app.pulse.duo" },
+    "android": { "package": "app.pulse.duo", "blockedPermissions": ["android.permission.READ_CONTACTS"] },
+    "web": { "bundler": "metro", "output": "single" },
+    "plugins": ["expo-router", "expo-secure-store", "expo-local-authentication"],
+    "experiments": { "typedRoutes": true }
+  }
+}

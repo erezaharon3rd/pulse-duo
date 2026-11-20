@@ -1,0 +1,24 @@
+# תצוגה מקדימה של המסכים בדפדפן הטלפון (מצב הדגמה בלי שרת, אלא אם הוגדרו משתני סביבה).
+# האפליקציה האמיתית (רטט, ביומטריה, התראות) נבנית ב-EAS ומותקנת בטלפון.
+[build]
+  base = "/"
+  command = "npm install && npm test && npm run build:web"
+  publish = "apps/mobile/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# ניתוב של אפליקציית עמוד-יחיד
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"

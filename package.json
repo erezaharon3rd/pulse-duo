@@ -1,0 +1,19 @@
+{
+  "name": "pulse-duo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PULSE DUO – מונורפו: ממשק (apps/mobile), לוגיקה (packages/core), נתונים (packages/db)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test:core && npm run check:boundaries",
+    "test:core": "node --experimental-strip-types --no-warnings --test packages/core/test/*.test.ts",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "build:web": "npm --workspace apps/mobile run export:web"
+  },
+  "engines": {
+    "node": ">=22.6"
+  }
+}
