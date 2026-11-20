@@ -13,7 +13,7 @@ export function setupData(): void {
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) return; // מצב תצוגה בלבד, בלי שרת
-  initDb({ url, anonKey, storage: secure });
+  initDb({ url, anonKey, storage: secure, detectSessionInUrl: Platform.OS === 'web' });
 }
 
 export const hasBackend = () => Boolean(process.env.EXPO_PUBLIC_SUPABASE_URL);

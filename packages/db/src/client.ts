@@ -9,6 +9,8 @@ export interface DbConfig {
     setItem(k: string, v: string): Promise<void>;
     removeItem(k: string): Promise<void>;
   };
+  /** בדפדפן: לקלוט את הכניסה מהקישור שבמייל. */
+  detectSessionInUrl?: boolean;
 }
 
 let sb: SupabaseClient | null = null;
@@ -16,7 +18,7 @@ let sb: SupabaseClient | null = null;
 export function initDb(cfg: DbConfig): void {
   if (sb) return;
   sb = createClient(cfg.url, cfg.anonKey, {
-    auth: { storage: cfg.storage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+    auth: { storage: cfg.storage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: cfg.detectSessionInUrl ?? false, flowType: 'implicit' },
   });
 }
 
@@ -33,14 +35,26 @@ async function call<T>(fn: string, body: unknown): Promise<T> {
 
 // ---------- כניסה ----------
 export const auth = {
-  /** קוד חד-פעמי למייל. shouldCreateUser: הרשמה וכניסה באותו מסך. */
-  async sendCode(email: string) {
-    const { error } = await db().auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  /** קישור כניסה למייל (הרשמה וכניסה באותו מסך). redirectTo = כתובת האתר שאליה הקישור מחזיר. */
+  async sendLink(email: string, redirectTo?: string) {
+    const { error } = await db().auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: redirectTo } });
     if (error) throw error;
   },
+  /** קוד מהמייל (כשיהיה SMTP משלנו עם תבנית קוד). */
   async verifyCode(email: string, token: string) {
     const { error } = await db().auth.verifyOtp({ email, token, type: 'email' });
     if (error) throw error;
+  },
+  /** מחכה שהכניסה מהקישור תיקלט, ומחזיר את מזהה המשתמש או null. */
+  async ready(): Promise<string | null> {
+    const { data } = await db().auth.getSession();
+    return data.session?.user.id ?? null;
+  },
+  onSignedIn(cb: (userId: string) => void) {
+    const { data } = db().auth.onAuthStateChange((_e, session) => {
+      if (session?.user) cb(session.user.id);
+    });
+    return () => data.subscription.unsubscribe();
   },
   signOut: () => db().auth.signOut(),
   currentUserId: async () => (await db().auth.getUser()).data.user?.id ?? null,

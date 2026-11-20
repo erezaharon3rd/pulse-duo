@@ -5,8 +5,8 @@ const same = (s: string): T => ({ m: s, f: s, plural: s });
 
 export const S = {
   promise: same('אפשר לעצור בכל רגע. מה שלך נשאר שלך.'),
-  emailTitle: same('מה המייל שלך? נשלח אליו קוד כניסה'),
-  codeTitle: same('הקוד שקיבלת במייל'),
+  emailTitle: same('מה המייל שלך? נשלח אליו קישור כניסה'),
+  codeTitle: same('שלחנו קישור 📬 פתח/י את המייל ולחץ/י עליו (שווה לבדוק גם בספאם)'),
   ageCheck: same('באיזו שנה נולדת? (מגיל 18 בלבד)'),
   nickTitle: same('בחר/י כינוי. אף אחד לא יראה את השם האמיתי שלך.'),
   addPairing: same('+ צימוד'),

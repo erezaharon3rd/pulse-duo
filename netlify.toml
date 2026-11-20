@@ -1,4 +1,4 @@
-# תצוגה מקדימה של המסכים בדפדפן הטלפון (מצב הדגמה בלי שרת, אלא אם הוגדרו משתני סביבה).
+# תצוגה מקדימה בדפדפן הטלפון, מחוברת לשרת האמיתי ב-Supabase.
 # האפליקציה האמיתית (רטט, ביומטריה, התראות) נבנית ב-EAS ומותקנת בטלפון.
 [build]
   base = "/"
@@ -7,6 +7,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # ערכים ציבוריים (מפתח publishable – מוגן ב-RLS). מפתח השירות לעולם לא כאן.
+  EXPO_PUBLIC_SUPABASE_URL = "https://vdecewxjvbdvqjrilumh.supabase.co"
+  EXPO_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_WkM2DN-EdM1hrOqjf7LTdw_GDp4oFo7"
 
 # ניתוב של אפליקציית עמוד-יחיד
 [[redirects]]

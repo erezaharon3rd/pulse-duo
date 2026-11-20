@@ -1,22 +1,33 @@
-// מסך 1: כניסה. מייל → קוד → שנת לידה (18+) → כינוי. (5 שאלות הדגלים האדומים יגיעו אחרי הכינוי.)
+// מסך 1: כניסה. מייל → קישור במייל → שנת לידה (18+) → כינוי. מי שכבר רשום – ישר הביתה. (5 שאלות הדגלים האדומים יגיעו אחרי הכינוי.)
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, TextInput } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { BigButton, Body, Card, Title, Bounce } from '../src/components/Ui';
 import { api, hasBackend } from '../src/data';
 import { t } from '../src/strings';
 import { colors, radius } from '../src/theme';
 
-type Step = 'email' | 'code' | 'age' | 'nick';
+type Step = 'loading' | 'email' | 'sent' | 'age' | 'nick';
 
 export default function Login() {
-  const [step, setStep] = useState<Step>('email');
+  const [step, setStep] = useState<Step>(hasBackend() ? 'loading' : 'email');
   const [email, setEmail] = useState('');
   const [year, setYear] = useState('');
-  const [code, setCode] = useState('');
   const [nick, setNick] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [nickOptions] = useState(() => ['קוקוס מסתורי', 'ניצוץ שקט', 'ענן שובב']);
+
+  // חזרה מהקישור שבמייל: אם יש כניסה – פרופיל קיים הולך הביתה, חדש ממשיך לשנת לידה
+  useEffect(() => {
+    if (!hasBackend()) return;
+    const route = async () => {
+      const p = await api.profile.get().catch(() => null);
+      if (p) router.replace('/home');
+      else setStep('age');
+    };
+    api.auth.ready().then((id) => (id ? route() : setStep('email')));
+    return api.auth.onSignedIn(() => void route());
+  }, []);
 
   const next = async () => {
     setErr(null);
@@ -24,11 +35,10 @@ export default function Login() {
       if (step === 'email') {
         const e = email.trim().toLowerCase();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return setErr('כתובת המייל לא נראית תקינה');
-        if (hasBackend()) await api.auth.sendCode(e);
-        setStep('code');
-      } else if (step === 'code') {
-        if (hasBackend()) await api.auth.verifyCode(email.trim().toLowerCase(), code.trim());
-        setStep('age');
+        if (!hasBackend()) return setStep('age');
+        const back = Platform.OS === 'web' ? globalThis.location?.origin : undefined;
+        await api.auth.sendLink(e, back);
+        setStep('sent');
       } else if (step === 'age') {
         const y = Number(year);
         const now = new Date().getFullYear();
@@ -55,14 +65,15 @@ export default function Login() {
         <Card>
           <Body>{t('emailTitle')}</Body>
           <TextInput style={[st.input, { textAlign: 'left' }]} keyboardType="email-address" autoCapitalize="none" autoComplete="email" value={email} onChangeText={setEmail} placeholder="name@mail.com" placeholderTextColor={colors.muted} />
-          <BigButton label="שלח/י קוד" onPress={next} />
+          <BigButton label="שלח/י קישור" onPress={next} />
         </Card>
       )}
-      {step === 'code' && (
+      {step === 'loading' && <Body muted>רגע…</Body>}
+      {step === 'sent' && (
         <Card>
           <Body>{t('codeTitle')}</Body>
-          <TextInput style={st.input} keyboardType="number-pad" autoComplete="one-time-code" value={code} onChangeText={setCode} maxLength={8} />
-          <BigButton label="המשך" onPress={next} />
+          <Body muted>{email.trim()}</Body>
+          <BigButton label="לא הגיע? לשלוח שוב" tone="muted" onPress={() => setStep('email')} />
         </Card>
       )}
       {step === 'age' && (
